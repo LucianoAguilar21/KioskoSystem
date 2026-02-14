@@ -1,0 +1,6 @@
+- Laravel 12
+- Tailwind
+- SQLite
+- Flowbite
+- Laravel Breeze
+- AlpineJS
