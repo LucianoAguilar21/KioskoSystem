@@ -1,5 +1,6 @@
 <?php
 // app/Http/Controllers/SaleController.php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateSaleRequest;
@@ -7,15 +8,16 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Services\SaleService;
 use App\Services\CashRegisterService;
+use App\Services\TicketService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class SaleController extends Controller
 {
     public function __construct(
         private SaleService $saleService,
-        private CashRegisterService $cashRegisterService
+        private CashRegisterService $cashRegisterService,
+        private TicketService $ticketService
     ) {}
 
     public function index()
@@ -33,34 +35,8 @@ class SaleController extends Controller
         return view('sales.index', compact('products', 'currentSession'));
     }
 
-    // public function store(CreateSaleRequest $request): RedirectResponse
-    // {
-    //     try {
-    //         $currentSession = $this->cashRegisterService->getCurrentSession();
-
-    //         if (!$currentSession) {
-    //             return back()->with('error', 'No hay caja abierta');
-    //         }
-
-    //         $sale = $this->saleService->createSale(
-    //             $request->user(),
-    //             $currentSession,
-    //             $request->validated('items'),
-    //             $request->validated('payment_method'),
-    //             $request->validated('payment_amounts')
-    //         );
-
-    //         return redirect()
-    //             ->route('sales.index')
-    //             ->with('success', "Venta #{$sale->id} registrada correctamente");
-    //     } catch (\Exception $e) {
-    //         return back()->with('error', $e->getMessage());
-    //     }
-    // }
-    // app/Http/Controllers/SaleController.php - Método store actualizado
-    public function store(Request $request): RedirectResponse | \Illuminate\Http\JsonResponse
+    public function store(Request $request)
     {
-        // Validación manual para manejar tanto JSON como FormData
         $validated = $request->validate([
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
@@ -70,10 +46,7 @@ class SaleController extends Controller
             'payment_amounts.cash' => ['nullable', 'numeric', 'min:0'],
             'payment_amounts.card' => ['nullable', 'numeric', 'min:0'],
             'payment_amounts.transfer' => ['nullable', 'numeric', 'min:0'],
-        ], [
-            'items.required' => 'Debe agregar al menos un producto',
-            'items.array' => 'Los productos deben ser un array',
-            'items.min' => 'Debe agregar al menos un producto',
+            'auto_print' => ['nullable', 'boolean'], // Nueva opción para impresión automática
         ]);
 
         try {
@@ -94,16 +67,23 @@ class SaleController extends Controller
                 $validated['payment_amounts']
             );
 
-            if ($request->expectsJson()) {
+            // Generar URL del ticket
+            $ticketUrl = route('sales.ticket', $sale);
+
+            if ($request->expectsJson()) {                
                 return response()->json([
                     'message' => "Venta #{$sale->id} registrada correctamente",
-                    'sale' => $sale
+                    'sale_id' => $sale->id,
+                    'ticket_url' => $ticketUrl,
+                    'auto_print' => $validated['auto_print'] ?? false
                 ], 201);
             }
 
+            // Si no es JSON, redirigir con la opción de abrir el ticket
             return redirect()
                 ->route('sales.index')
-                ->with('success', "Venta #{$sale->id} registrada correctamente");
+                ->with('success', "Venta #{$sale->id} registrada correctamente")
+                ->with('ticket_url', $ticketUrl);
         } catch (\Exception $e) {
             if ($request->expectsJson()) {
                 return response()->json(['message' => $e->getMessage()], 422);
@@ -134,11 +114,29 @@ class SaleController extends Controller
         $products = Product::active()
             ->where(function ($q) use ($query) {
                 $q->where('name', 'like', "%{$query}%")
-                    ->orWhere('code', 'like', "%{$query}%");
+                  ->orWhere('code', 'like', "%{$query}%");
             })
             ->limit(10)
             ->get(['id', 'name', 'code', 'sale_price', 'stock']);
 
         return response()->json($products);
+    }
+
+    /**
+     * Generar y mostrar el ticket PDF (para impresión automática)
+     */
+    public function ticket(Sale $sale)
+    {
+        $pdf = $this->ticketService->streamTicket($sale);
+        return $pdf->stream("ticket-{$sale->id}.pdf");
+    }
+
+    /**
+     * Descargar el ticket PDF
+     */
+    public function downloadTicket(Sale $sale)
+    {
+        $pdf = $this->ticketService->downloadTicket($sale);
+        return $pdf->download("ticket-{$sale->id}.pdf");
     }
 }

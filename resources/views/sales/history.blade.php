@@ -44,10 +44,18 @@
                             </td>
                             <td class="px-6 py-4 font-semibold">${{ number_format($sale->total_amount, 2) }}</td>
                             <td class="px-6 py-4">
-                                <a href="{{ route('sales.show', $sale) }}" class="text-blue-600 hover:text-blue-800">
-                                    Ver
-                                </a>
-                            </td>
+    <div class="flex space-x-3">
+        <a href="{{ route('sales.show', $sale) }}" class="text-blue-600 hover:text-blue-800">
+            Ver
+        </a>
+        <a href="{{ route('sales.ticket', $sale) }}" target="_blank" class="text-green-600 hover:text-green-800">
+            Ticket
+        </a>
+        <a href="{{ route('sales.download-ticket', $sale) }}" class="text-gray-600 hover:text-gray-800">
+            Descargar
+        </a>
+    </div>
+</td>
                         </tr>
                     @empty
                         <tr>

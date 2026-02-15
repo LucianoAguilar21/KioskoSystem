@@ -31,6 +31,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Ventas
+    // Ventas
     Route::prefix('sales')->name('sales.')->group(function () {
         Route::get('/', [SaleController::class, 'index'])
             ->name('index');
@@ -42,6 +43,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('search');
         Route::get('/{sale}', [SaleController::class, 'show'])
             ->name('show');
+        Route::get('/{sale}/ticket', [SaleController::class, 'ticket'])
+            ->name('ticket');
+        Route::get('/{sale}/download-ticket', [SaleController::class, 'downloadTicket'])
+            ->name('download-ticket');
     });
 
     // Productos

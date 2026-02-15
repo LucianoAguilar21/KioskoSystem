@@ -4,12 +4,19 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="mb-6 flex justify-between items-center">
+        
+        
         <h1 class="text-3xl font-bold text-gray-900">Nueva Venta</h1>
         
         <a href="{{ route('sales.history') }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
             Ver Historial
         </a>
     </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4 message hidden">
+                <x-alert type="success" dismissible>
+                    Venta registrada correctamente. <a href="#" class="underline" id="view-sale-link">Ver detalles</a>
+                </x-alert>
+            </div>
 
     <div x-data="saleForm()" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Búsqueda y Productos -->
@@ -114,6 +121,19 @@
                 </div>
                 
                 <div class="p-4 space-y-4">
+                    <!-- Checkbox impresión automática -->
+                        <div class="border-t pt-4">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    x-model="autoPrint"
+                                    @change="toggleAutoPrint()"
+                                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                >
+                                <span class="ml-2 text-sm text-gray-700">Imprimir ticket automáticamente</span>
+                            </label>
+                            <p class="text-xs text-gray-500 mt-1 ml-6">El ticket se abrirá en una nueva pestaña</p>
+                        </div>
                     <!-- Total -->
                     <div class="flex justify-between items-center text-2xl font-bold">
                         <span>TOTAL:</span>
@@ -166,6 +186,7 @@
                                 class="w-full border border-gray-300 rounded px-3 py-2"
                             >
                         </div>
+                        
                     </div>
 
                     <!-- Botón confirmar -->
@@ -187,11 +208,11 @@
                         Limpiar
                     </button>
                 </div>
+                
             </div>
         </div>
     </div>
 </div>
-
 <script>
 function saleForm() {
     return {
@@ -204,6 +225,7 @@ function saleForm() {
             card: 0,
             transfer: 0
         },
+        autoPrint: localStorage.getItem('autoPrintTicket') === 'true',
 
         async searchProducts() {
             if (this.search.length < 2) {
@@ -277,6 +299,11 @@ function saleForm() {
             }
         },
 
+        toggleAutoPrint() {
+            this.autoPrint = !this.autoPrint;
+            localStorage.setItem('autoPrintTicket', this.autoPrint);
+        },
+
         async submitSale() {
             if (this.cart.length === 0) {
                 alert('No hay productos en el carrito');
@@ -306,7 +333,8 @@ function saleForm() {
                 _token: document.querySelector('meta[name="csrf-token"]').content,
                 payment_method: this.paymentMethod,
                 items: items,
-                payment_amounts: amounts
+                payment_amounts: amounts,
+                auto_print: this.autoPrint
             };
 
             try {
@@ -323,7 +351,25 @@ function saleForm() {
                 const result = await response.json();
 
                 if (response.ok) {
-                    window.location.reload();
+                    // Si tiene impresión automática habilitada, abrir el ticket
+                    
+                    if (result.auto_print && result.ticket_url) {
+                        window.open(result.ticket_url, '_blank');
+                    }
+                    
+                    // Limpiar carrito y recargar
+                    this.cart = [];
+                    this.paymentMethod = 'cash';
+                    this.paymentAmounts = { cash: 0, card: 0, transfer: 0 };
+                    
+                    const messageDiv = document.querySelector('.message');
+                    messageDiv.classList.remove('hidden');
+
+                    // Mostrar mensaje de éxito
+                    // alert(`Venta #${result.sale_id} registrada correctamente`);
+                    
+                    // // Recargar después de un momento
+                    // setTimeout(() => window.location.reload(), 1000);
                 } else {
                     if (result.errors) {
                         const errorMessages = Object.values(result.errors).flat().join('\n');

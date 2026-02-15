@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+        'business_name' => env('BUSINESS_NAME', 'Mi Kiosko'),
+    'business_address' => env('BUSINESS_ADDRESS', 'Calle Principal 123'),
+    'business_phone' => env('BUSINESS_PHONE', '011-1234-5678'),
 ];
