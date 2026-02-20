@@ -1,5 +1,6 @@
 <?php
 // app/Services/SaleService.php
+
 namespace App\Services;
 
 use App\Models\Sale;
@@ -16,7 +17,9 @@ class SaleService
         CashRegisterSession $session,
         array $items,
         string $paymentMethod,
-        array $paymentAmounts
+        array $paymentAmounts,
+        float $changeAmount = 0,
+        float $totalPaid = 0
     ): Sale {
         if ($session->isClosed()) {
             throw new \Exception('No se puede vender con caja cerrada');
@@ -30,14 +33,23 @@ class SaleService
             // Calcular total
             $totalAmount = $this->calculateTotal($items);
 
+            // Si no se envió totalPaid, calcularlo
+            if ($totalPaid === 0) {
+                $totalPaid = ($paymentAmounts['cash'] ?? 0) +
+                            ($paymentAmounts['card'] ?? 0) +
+                            ($paymentAmounts['transfer'] ?? 0);
+            }
+
             // Validar montos de pago
-            $this->validatePaymentAmounts($paymentMethod, $paymentAmounts, $totalAmount);
+            $this->validatePaymentAmounts($paymentMethod, $paymentAmounts, $totalAmount, $totalPaid, $changeAmount);
 
             // Crear venta
             $sale = Sale::create([
                 'user_id' => $user->id,
                 'cash_register_session_id' => $session->id,
                 'total_amount' => $totalAmount,
+                'total_paid' => $totalPaid,
+                'change_amount' => $changeAmount,
                 'payment_method' => $paymentMethod,
                 'cash_amount' => $paymentAmounts['cash'] ?? 0,
                 'card_amount' => $paymentAmounts['card'] ?? 0,
@@ -47,7 +59,7 @@ class SaleService
             // Crear items y descontar stock
             foreach ($items as $item) {
                 $product = Product::findOrFail($item['product_id']);
-                
+
                 $sale->items()->create([
                     'product_id' => $product->id,
                     'quantity' => $item['quantity'],
@@ -62,6 +74,8 @@ class SaleService
             Log::info('Venta registrada', [
                 'sale_id' => $sale->id,
                 'total' => $totalAmount,
+                'total_paid' => $totalPaid,
+                'change' => $changeAmount,
                 'items_count' => count($items),
             ]);
 
@@ -78,7 +92,7 @@ class SaleService
     {
         foreach ($items as $item) {
             $product = Product::findOrFail($item['product_id']);
-            
+
             if ($product->stock < $item['quantity']) {
                 throw new \Exception(
                     "Stock insuficiente para {$product->name}. Disponible: {$product->stock}"
@@ -100,22 +114,34 @@ class SaleService
     private function validatePaymentAmounts(
         string $method,
         array $amounts,
-        float $total
+        float $total,
+        float $totalPaid,
+        float $changeAmount
     ): void {
-        $sum = ($amounts['cash'] ?? 0) + 
-               ($amounts['card'] ?? 0) + 
-               ($amounts['transfer'] ?? 0);
+        // Calcular el pago efectivo (total pagado - vuelto)
+        $effectivePayment = $totalPaid - $changeAmount;
 
-        if (abs($sum - $total) > 0.01) {
-            throw new \Exception('Los montos de pago no coinciden con el total');
+        // El pago efectivo debe ser igual o mayor al total
+        if ($effectivePayment < $total - 0.01) {
+            throw new \Exception('El monto pagado es insuficiente');
+        }
+
+        // Si hay vuelto, debe haber pago en efectivo
+        if ($changeAmount > 0 && ($amounts['cash'] ?? 0) == 0) {
+            throw new \Exception('No se puede dar vuelto sin pago en efectivo');
+        }
+
+        // El vuelto no puede ser mayor al efectivo recibido
+        if ($changeAmount > ($amounts['cash'] ?? 0)) {
+            throw new \Exception('El vuelto no puede ser mayor al efectivo recibido');
         }
 
         if ($method !== 'mixed') {
-            $key = $method === 'cash' ? 'cash' : 
+            $key = $method === 'cash' ? 'cash' :
                    ($method === 'card' ? 'card' : 'transfer');
-            
-            if (abs(($amounts[$key] ?? 0) - $total) > 0.01) {
-                throw new \Exception('Monto de pago incorrecto para método seleccionado');
+
+            if (($amounts[$key] ?? 0) == 0) {
+                throw new \Exception('Debe ingresar un monto para el método de pago seleccionado');
             }
         }
     }

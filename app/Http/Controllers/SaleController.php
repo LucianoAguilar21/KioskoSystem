@@ -37,60 +37,62 @@ class SaleController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'items' => ['required', 'array', 'min:1'],
-            'items.*.product_id' => ['required', 'exists:products,id'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
-            'payment_method' => ['required', 'in:cash,card,transfer,mixed'],
-            'payment_amounts' => ['required', 'array'],
-            'payment_amounts.cash' => ['nullable', 'numeric', 'min:0'],
-            'payment_amounts.card' => ['nullable', 'numeric', 'min:0'],
-            'payment_amounts.transfer' => ['nullable', 'numeric', 'min:0'],
-            'auto_print' => ['nullable', 'boolean'], // Nueva opción para impresión automática
-        ]);
+    $validated = $request->validate([
+        'items' => ['required', 'array', 'min:1'],
+        'items.*.product_id' => ['required', 'exists:products,id'],
+        'items.*.quantity' => ['required', 'integer', 'min:1'],
+        'payment_method' => ['required', 'in:cash,card,transfer,mixed'],
+        'payment_amounts' => ['required', 'array'],
+        'payment_amounts.cash' => ['nullable', 'numeric', 'min:0'],
+        'payment_amounts.card' => ['nullable', 'numeric', 'min:0'],
+        'payment_amounts.transfer' => ['nullable', 'numeric', 'min:0'],
+        'change_amount' => ['nullable', 'numeric', 'min:0'],
+        'total_paid' => ['nullable', 'numeric', 'min:0'],
+        'auto_print' => ['nullable', 'boolean'],
+    ]);
 
-        try {
-            $currentSession = $this->cashRegisterService->getCurrentSession();
+    try {
+        $currentSession = $this->cashRegisterService->getCurrentSession();
 
-            if (!$currentSession) {
-                if ($request->expectsJson()) {
-                    return response()->json(['message' => 'No hay caja abierta'], 422);
-                }
-                return back()->with('error', 'No hay caja abierta');
-            }
-
-            $sale = $this->saleService->createSale(
-                $request->user(),
-                $currentSession,
-                $validated['items'],
-                $validated['payment_method'],
-                $validated['payment_amounts']
-            );
-
-            // Generar URL del ticket
-            $ticketUrl = route('sales.ticket', $sale);
-
-            if ($request->expectsJson()) {                
-                return response()->json([
-                    'message' => "Venta #{$sale->id} registrada correctamente",
-                    'sale_id' => $sale->id,
-                    'ticket_url' => $ticketUrl,
-                    'auto_print' => $validated['auto_print'] ?? false
-                ], 201);
-            }
-
-            // Si no es JSON, redirigir con la opción de abrir el ticket
-            return redirect()
-                ->route('sales.index')
-                ->with('success', "Venta #{$sale->id} registrada correctamente")
-                ->with('ticket_url', $ticketUrl);
-        } catch (\Exception $e) {
+        if (!$currentSession) {
             if ($request->expectsJson()) {
-                return response()->json(['message' => $e->getMessage()], 422);
+                return response()->json(['message' => 'No hay caja abierta'], 422);
             }
-            return back()->with('error', $e->getMessage());
+            return back()->with('error', 'No hay caja abierta');
         }
+
+        $sale = $this->saleService->createSale(
+            $request->user(),
+            $currentSession,
+            $validated['items'],
+            $validated['payment_method'],
+            $validated['payment_amounts'],
+            $validated['change_amount'] ?? 0,
+            $validated['total_paid'] ?? 0
+        );
+
+        $ticketUrl = route('sales.ticket', $sale);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => "Venta #{$sale->id} registrada correctamente",
+                'sale_id' => $sale->id,
+                'ticket_url' => $ticketUrl,
+                'auto_print' => $validated['auto_print'] ?? false
+            ], 201);
+        }
+
+        return redirect()
+            ->route('sales.index')
+            ->with('success', "Venta #{$sale->id} registrada correctamente")
+            ->with('ticket_url', $ticketUrl);
+    } catch (\Exception $e) {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+        return back()->with('error', $e->getMessage());
     }
+}
 
     public function history()
     {

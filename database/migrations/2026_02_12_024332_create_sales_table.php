@@ -20,6 +20,8 @@ return new class extends Migration
             $table->decimal('cash_amount', 10, 2)->default(0);
             $table->decimal('card_amount', 10, 2)->default(0);
             $table->decimal('transfer_amount', 10, 2)->default(0);
+            $table->decimal('total_paid', 10, 2)->default(0)->after('total_amount');
+            $table->decimal('change_amount', 10, 2)->default(0)->after('total_paid');
             $table->timestamps();
 
             $table->index(['cash_register_session_id', 'created_at']);

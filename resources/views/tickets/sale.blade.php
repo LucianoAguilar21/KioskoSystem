@@ -11,83 +11,83 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Courier New', monospace;
             font-size: 11px;
             line-height: 1.4;
             padding: 10px;
         }
-        
+
         .ticket {
             width: 100%;
             max-width: 80mm;
         }
-        
+
         .header {
             text-align: center;
             margin-bottom: 15px;
             border-bottom: 2px dashed #000;
             padding-bottom: 10px;
         }
-        
+
         .business-name {
             font-size: 16px;
             font-weight: bold;
             margin-bottom: 5px;
         }
-        
+
         .business-info {
             font-size: 10px;
             margin-bottom: 2px;
         }
-        
+
         .ticket-info {
             margin-bottom: 15px;
             font-size: 10px;
             border-bottom: 1px dashed #000;
             padding-bottom: 10px;
         }
-        
+
         .ticket-info div {
             margin-bottom: 3px;
         }
-        
+
         .items {
             margin-bottom: 15px;
         }
-        
+
         .item {
             margin-bottom: 8px;
         }
-        
+
         .item-name {
             font-weight: bold;
             margin-bottom: 2px;
         }
-        
+
         .item-details {
             display: flex;
             justify-content: space-between;
             font-size: 10px;
         }
-        
+
         .separator {
             border-top: 1px dashed #000;
             margin: 10px 0;
         }
-        
+
         .totals {
             margin-bottom: 15px;
         }
-        
+
         .total-row {
             display: flex;
             justify-content: space-between;
             margin-bottom: 5px;
             font-size: 11px;
         }
-        
+
         .total-row.main {
             font-size: 14px;
             font-weight: bold;
@@ -95,17 +95,17 @@
             padding-top: 8px;
             border-top: 2px solid #000;
         }
-        
+
         .payment-info {
             margin-bottom: 15px;
             font-size: 10px;
         }
-        
+
         .payment-method {
             font-weight: bold;
             margin-bottom: 5px;
         }
-        
+
         .footer {
             text-align: center;
             font-size: 10px;
@@ -113,11 +113,11 @@
             padding-top: 10px;
             border-top: 2px dashed #000;
         }
-        
+
         .footer-message {
             margin-bottom: 3px;
         }
-        
+
         .not-valid {
             font-weight: bold;
             margin-top: 8px;
@@ -172,41 +172,54 @@
 
         <!-- Información de Pago -->
         <div class="payment-info">
-            <div class="payment-method">
-                MÉTODO DE PAGO:
-                @if($sale->payment_method === 'cash')
-                    EFECTIVO
-                @elseif($sale->payment_method === 'card')
-                    TARJETA
-                @elseif($sale->payment_method === 'transfer')
-                    TRANSFERENCIA
-                @else
-                    MIXTO
-                @endif
+    <div class="payment-method">
+        MÉTODO DE PAGO:
+        @if($sale->payment_method === 'cash')
+            EFECTIVO
+        @elseif($sale->payment_method === 'card')
+            DÉBITO
+        @elseif($sale->payment_method === 'transfer')
+            TRANSFERENCIA / MP
+        @else
+            MIXTO
+        @endif
+    </div>
+
+    @if($sale->payment_method === 'mixed')
+        <div class="separator"></div>
+        @if($sale->cash_amount > 0)
+            <div class="total-row">
+                <span>Efectivo:</span>
+                <span>${{ number_format($sale->cash_amount, 2) }}</span>
             </div>
-            
-            @if($sale->payment_method === 'mixed')
-                <div class="separator"></div>
-                @if($sale->cash_amount > 0)
-                    <div class="total-row">
-                        <span>Efectivo:</span>
-                        <span>${{ number_format($sale->cash_amount, 2) }}</span>
-                    </div>
-                @endif
-                @if($sale->card_amount > 0)
-                    <div class="total-row">
-                        <span>Tarjeta:</span>
-                        <span>${{ number_format($sale->card_amount, 2) }}</span>
-                    </div>
-                @endif
-                @if($sale->transfer_amount > 0)
-                    <div class="total-row">
-                        <span>Transferencia:</span>
-                        <span>${{ number_format($sale->transfer_amount, 2) }}</span>
-                    </div>
-                @endif
-            @endif
+        @endif
+        @if($sale->card_amount > 0)
+            <div class="total-row">
+                <span>Débito:</span>
+                <span>${{ number_format($sale->card_amount, 2) }}</span>
+            </div>
+        @endif
+        @if($sale->transfer_amount > 0)
+            <div class="total-row">
+                <span>Transfer./MP:</span>
+                <span>${{ number_format($sale->transfer_amount, 2) }}</span>
+            </div>
+        @endif
+        <div class="separator"></div>
+        <div class="total-row">
+            <span>Total Pagado:</span>
+            <span>${{ number_format($sale->total_paid, 2) }}</span>
         </div>
+    @endif
+
+    @if($sale->hasChange())
+        <div class="separator"></div>
+        <div class="total-row" style="background: #fef3c7; padding: 5px; margin-top: 5px;">
+            <span style="font-weight: bold;">VUELTO ENTREGADO:</span>
+            <span style="font-weight: bold;">${{ number_format($sale->change_amount, 2) }}</span>
+        </div>
+    @endif
+</div>
 
         <!-- Footer -->
         <div class="footer">

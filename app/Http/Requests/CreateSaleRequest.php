@@ -12,19 +12,14 @@ class CreateSaleRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Prepara los datos antes de la validación
-     */
     protected function prepareForValidation()
     {
-        // Si payment_amounts viene como string JSON, decodificarlo
         if ($this->has('payment_amounts') && is_string($this->payment_amounts)) {
             $this->merge([
                 'payment_amounts' => json_decode($this->payment_amounts, true)
             ]);
         }
 
-        // Si items viene como string JSON, decodificarlo
         if ($this->has('items') && is_string($this->items)) {
             $this->merge([
                 'items' => json_decode($this->items, true)
@@ -43,6 +38,9 @@ class CreateSaleRequest extends FormRequest
             'payment_amounts.cash' => ['nullable', 'numeric', 'min:0'],
             'payment_amounts.card' => ['nullable', 'numeric', 'min:0'],
             'payment_amounts.transfer' => ['nullable', 'numeric', 'min:0'],
+            'change_amount' => ['nullable', 'numeric', 'min:0'],
+            'total_paid' => ['nullable', 'numeric', 'min:0'],
+            'auto_print' => ['nullable', 'boolean'],
         ];
     }
 
@@ -52,13 +50,8 @@ class CreateSaleRequest extends FormRequest
             'items.required' => 'Debe agregar al menos un producto',
             'items.array' => 'Los productos deben ser un array',
             'items.min' => 'Debe agregar al menos un producto',
-            'items.*.product_id.required' => 'ID de producto es requerido',
-            'items.*.product_id.exists' => 'El producto no existe',
-            'items.*.quantity.required' => 'La cantidad es requerida',
-            'items.*.quantity.min' => 'La cantidad debe ser al menos 1',
             'payment_method.required' => 'Debe seleccionar un método de pago',
             'payment_method.in' => 'Método de pago inválido',
-            'payment_amounts.required' => 'Los montos de pago son requeridos',
         ];
     }
 }
