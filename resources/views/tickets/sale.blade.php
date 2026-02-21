@@ -150,7 +150,7 @@
                     <div class="item-name">{{ $item->product->name }}</div>
                     <div class="item-details">
                         <span>{{ $item->quantity }} x ${{ number_format($item->unit_price, 2) }}</span>
-                        <span>${{ number_format($item->subtotal, 2) }}</span>
+                        <span> - ${{ number_format($item->subtotal, 2) }}</span>
                     </div>
                 </div>
             @endforeach

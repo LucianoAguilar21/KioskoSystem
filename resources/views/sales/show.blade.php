@@ -107,6 +107,10 @@
                             <span class="font-bold text-gray-900">Total:</span>
                             <span class="font-bold text-blue-600">${{ number_format($sale->total_amount, 2) }}</span>
                         </div>
+                        <div class="flex justify-between text-lg mt-2">
+                            <span class="font-bold text-gray-900">Vuelto:</span>
+                            <span class=" bg-yellow-100 text-yellow-800 rounded px-1">${{ number_format($sale->change_amount, 2) }}</span>
+                        </div>
                     </div>
 
                     {{-- <div class="pt-4 border-t">
@@ -115,21 +119,21 @@
                         </a>
                     </div> --}}
                     <div class="pt-4 border-t space-y-2">
-    <a 
-        href="{{ route('sales.ticket', $sale) }}" 
+    <a
+        href="{{ route('sales.ticket', $sale) }}"
         target="_blank"
         class="block w-full text-center text-white bg-green-700 hover:bg-green-800 px-4 py-2 rounded-lg font-medium"
     >
         Ver Ticket
     </a>
-    <a 
+    <a
         href="{{ route('sales.download-ticket', $sale) }}"
         class="block w-full text-center text-gray-700 bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-lg font-medium"
     >
         Descargar PDF
     </a>
-    <a 
-        href="{{ route('sales.history') }}" 
+    <a
+        href="{{ route('sales.history') }}"
         class="block w-full text-center text-blue-600 hover:text-blue-800 px-4 py-2 rounded-lg font-medium border border-blue-600"
     >
         Volver al Historial
