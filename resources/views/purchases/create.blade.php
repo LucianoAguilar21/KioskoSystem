@@ -8,16 +8,14 @@
     </div>
 
     <div x-data="purchaseForm()" class="bg-white shadow rounded-lg">
-        <form @submit.prevent="submitForm()" class="p-6 space-y-6">
-            @csrf
-
+        <div class="p-6 space-y-6">
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <!-- Proveedor -->
                 <div>
                     <label for="supplier_id" class="block text-sm font-medium text-gray-700 mb-2">
                         Proveedor <span class="text-red-500">*</span>
                     </label>
-                    <select 
+                    <select
                         id="supplier_id"
                         x-model="form.supplier_id"
                         required
@@ -35,7 +33,7 @@
                     <label for="purchase_date" class="block text-sm font-medium text-gray-700 mb-2">
                         Fecha <span class="text-red-500">*</span>
                     </label>
-                    <input 
+                    <input
                         type="date"
                         id="purchase_date"
                         x-model="form.purchase_date"
@@ -51,7 +49,7 @@
                     <label for="invoice_number" class="block text-sm font-medium text-gray-700 mb-2">
                         Número de Factura (opcional)
                     </label>
-                    <input 
+                    <input
                         type="text"
                         id="invoice_number"
                         x-model="form.invoice_number"
@@ -64,7 +62,7 @@
             <div class="border-t pt-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-semibold text-gray-900">Productos</h3>
-                    <button 
+                    <button
                         type="button"
                         @click="addItem()"
                         class="text-white bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg text-sm font-medium"
@@ -78,7 +76,7 @@
                         <div class="grid grid-cols-12 gap-3 p-3 bg-gray-50 rounded-lg">
                             <!-- Producto -->
                             <div class="col-span-5">
-                                <select 
+                                <select
                                     x-model="item.product_id"
                                     required
                                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm"
@@ -92,7 +90,7 @@
 
                             <!-- Cantidad -->
                             <div class="col-span-2">
-                                <input 
+                                <input
                                     type="number"
                                     x-model.number="item.quantity"
                                     @input="calculateSubtotal(index)"
@@ -105,7 +103,7 @@
 
                             <!-- Costo Unitario -->
                             <div class="col-span-2">
-                                <input 
+                                <input
                                     type="number"
                                     x-model.number="item.unit_cost"
                                     @input="calculateSubtotal(index)"
@@ -119,9 +117,9 @@
 
                             <!-- Subtotal -->
                             <div class="col-span-2">
-                                <input 
+                                <input
                                     type="text"
-                                    :value="'$' + item.subtotal.toFixed(2)"
+                                    :value="'$' + (item.subtotal || 0).toFixed(2)"
                                     readonly
                                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-100 font-semibold"
                                 >
@@ -129,7 +127,7 @@
 
                             <!-- Eliminar -->
                             <div class="col-span-1 flex items-center">
-                                <button 
+                                <button
                                     type="button"
                                     @click="removeItem(index)"
                                     class="text-red-600 hover:text-red-800"
@@ -161,7 +159,7 @@
                 <label for="notes" class="block text-sm font-medium text-gray-700 mb-2">
                     Notas (opcional)
                 </label>
-                <textarea 
+                <textarea
                     id="notes"
                     x-model="form.notes"
                     rows="3"
@@ -174,15 +172,16 @@
                 <a href="{{ route('purchases.index') }}" class="text-gray-700 bg-gray-200 hover:bg-gray-300 px-6 py-2 rounded-lg font-medium">
                     Cancelar
                 </a>
-                <button 
-                    type="submit"
+                <button
+                    type="button"
+                    @click="submitForm()"
                     :disabled="form.items.length === 0"
                     class="text-white bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed px-6 py-2 rounded-lg font-medium"
                 >
                     Registrar Compra
                 </button>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 
@@ -216,7 +215,7 @@ function purchaseForm() {
         },
 
         calculateTotal() {
-            return this.form.items.reduce((sum, item) => sum + item.subtotal, 0);
+            return this.form.items.reduce((sum, item) => sum + (item.subtotal || 0), 0);
         },
 
         async submitForm() {
@@ -225,29 +224,59 @@ function purchaseForm() {
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-            formData.append('supplier_id', this.form.supplier_id);
-            formData.append('purchase_date', this.form.purchase_date);
-            formData.append('invoice_number', this.form.invoice_number);
-            formData.append('notes', this.form.notes);
-            formData.append('items', JSON.stringify(this.form.items));
+            if (!this.form.supplier_id) {
+                alert('Debe seleccionar un proveedor');
+                return;
+            }
+
+            // Validar que todos los items tengan producto, cantidad y costo
+            for (let i = 0; i < this.form.items.length; i++) {
+                const item = this.form.items[i];
+                if (!item.product_id) {
+                    alert(`Debe seleccionar un producto en la fila ${i + 1}`);
+                    return;
+                }
+                if (!item.quantity || item.quantity < 1) {
+                    alert(`Debe ingresar una cantidad válida en la fila ${i + 1}`);
+                    return;
+                }
+                if (!item.unit_cost || item.unit_cost <= 0) {
+                    alert(`Debe ingresar un costo válido en la fila ${i + 1}`);
+                    return;
+                }
+            }
+
+            const data = {
+                _token: document.querySelector('meta[name="csrf-token"]').content,
+                supplier_id: this.form.supplier_id,
+                purchase_date: this.form.purchase_date,
+                invoice_number: this.form.invoice_number || null,
+                notes: this.form.notes || null,
+                items: this.form.items
+            };
 
             try {
                 const response = await fetch('{{ route("purchases.store") }}', {
                     method: 'POST',
                     headers: {
+                        'Content-Type': 'application/json',
                         'Accept': 'application/json',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
                     },
-                    body: formData
+                    body: JSON.stringify(data)
                 });
+
+                const result = await response.json();
 
                 if (response.ok) {
                     window.location.href = '{{ route("purchases.index") }}';
                 } else {
-                    const error = await response.json();
-                    alert(error.message || 'Error al registrar la compra');
+                    if (result.errors) {
+                        const errorMessages = Object.values(result.errors).flat().join('\n');
+                        alert('Errores de validación:\n' + errorMessages);
+                    } else {
+                        alert(result.message || 'Error al registrar la compra');
+                    }
                 }
             } catch (error) {
                 console.error('Error:', error);

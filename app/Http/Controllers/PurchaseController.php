@@ -10,6 +10,7 @@ use App\Models\Supplier;
 use App\Services\PurchaseService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
 {
@@ -39,29 +40,54 @@ class PurchaseController extends Controller
         return view('purchases.create', compact('suppliers', 'products'));
     }
 
-    public function store(CreatePurchaseRequest $request): RedirectResponse
-    {
-        try {
-            $supplier = Supplier::findOrFail($request->validated('supplier_id'));
+   public function store(Request $request): RedirectResponse | \Illuminate\Http\JsonResponse
+{
+    // Validación manual para manejar tanto JSON como FormData
+    $validated = $request->validate([
+        'supplier_id' => ['required', 'exists:suppliers,id'],
+        'invoice_number' => ['nullable', 'string', 'max:100'],
+        'purchase_date' => ['required', 'date'],
+        'items' => ['required', 'array', 'min:1'],
+        'items.*.product_id' => ['required', 'exists:products,id'],
+        'items.*.quantity' => ['required', 'integer', 'min:1'],
+        'items.*.unit_cost' => ['required', 'numeric', 'min:0'],
+        'notes' => ['nullable', 'string', 'max:1000'],
+    ], [
+        'supplier_id.required' => 'Debe seleccionar un proveedor',
+        'items.required' => 'Debe agregar al menos un producto',
+        'items.array' => 'Los productos deben ser un array',
+        'items.min' => 'Debe agregar al menos un producto',
+    ]);
 
-            $this->purchaseService->createPurchase(
-                $request->user(),
-                $supplier,
-                $request->validated('items'),
-                $request->validated('invoice_number'),
-                $request->validated('purchase_date') 
-                    ? new \DateTime($request->validated('purchase_date')) 
-                    : null,
-                $request->validated('notes')
-            );
+    try {
+        $supplier = Supplier::findOrFail($validated['supplier_id']);
 
-            return redirect()
-                ->route('purchases.index')
-                ->with('success', 'Compra registrada correctamente');
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
+        $this->purchaseService->createPurchase(
+            $request->user(),
+            $supplier,
+            $validated['items'],
+            $validated['invoice_number'],
+            isset($validated['purchase_date']) ? new \DateTime($validated['purchase_date']) : null,
+            $validated['notes'] ?? null
+        );
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Compra registrada correctamente'
+            ], 201);
         }
+
+        return redirect()
+            ->route('purchases.index')
+            ->with('success', 'Compra registrada correctamente');
+    } catch (\Exception $e) {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+        return back()->with('error', $e->getMessage());
     }
+}
+
 
     public function show(Purchase $purchase)
     {
