@@ -73,18 +73,22 @@
 
                 <div class="space-y-3">
                     <template x-for="(item, index) in form.items" :key="index">
-                        <div class="grid grid-cols-12 gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="grid grid-cols-12 gap-3 p-3 bg-gray-50 rounded-lg items-center">
                             <!-- Producto -->
-                            <div class="col-span-5">
+                            <div class="col-span-7">
                                 <select
                                     x-model="item.product_id"
+                                    @change="onProductSelect(index)"
                                     required
                                     class="w-full border border-gray-300 rounded px-3 py-2 text-sm"
                                 >
                                     <option value="">Seleccione producto</option>
-                                    @foreach($products as $product)
-                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
-                                    @endforeach
+                                    <template x-for="product in products" :key="product.id">
+                                        <option
+                                            :value="product.id"
+                                            x-text="product.name + ' (Stock: ' + product.stock + ') - $' + parseFloat(product.cost_price).toFixed(2)"
+                                        ></option>
+                                    </template>
                                 </select>
                             </div>
 
@@ -94,24 +98,10 @@
                                     type="number"
                                     x-model.number="item.quantity"
                                     @input="calculateSubtotal(index)"
-                                    placeholder="Cant."
+                                    placeholder="Cantidad"
                                     min="1"
                                     required
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm"
-                                >
-                            </div>
-
-                            <!-- Costo Unitario -->
-                            <div class="col-span-2">
-                                <input
-                                    type="number"
-                                    x-model.number="item.unit_cost"
-                                    @input="calculateSubtotal(index)"
-                                    placeholder="Costo"
-                                    step="0.01"
-                                    min="0"
-                                    required
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
                                 >
                             </div>
 
@@ -121,12 +111,12 @@
                                     type="text"
                                     :value="'$' + (item.subtotal || 0).toFixed(2)"
                                     readonly
-                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-100 font-semibold"
+                                    class="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-gray-100 font-semibold text-right"
                                 >
                             </div>
 
                             <!-- Eliminar -->
-                            <div class="col-span-1 flex items-center">
+                            <div class="col-span-1 flex items-center justify-center">
                                 <button
                                     type="button"
                                     @click="removeItem(index)"
@@ -163,6 +153,7 @@
                     id="notes"
                     x-model="form.notes"
                     rows="3"
+                    placeholder="Observaciones sobre la compra..."
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 ></textarea>
             </div>
@@ -175,7 +166,7 @@
                 <button
                     type="button"
                     @click="submitForm()"
-                    :disabled="form.items.length === 0"
+                    :disabled="form.items.length === 0 || !form.supplier_id"
                     class="text-white bg-blue-700 hover:bg-blue-800 disabled:bg-gray-400 disabled:cursor-not-allowed px-6 py-2 rounded-lg font-medium"
                 >
                     Registrar Compra
@@ -196,6 +187,15 @@ function purchaseForm() {
             notes: ''
         },
 
+        products: {!! json_encode($products->map(function($product) {
+            return [
+                'id' => $product->id,
+                'name' => $product->name,
+                'cost_price' => (float) $product->cost_price,
+                'stock' => $product->stock,
+            ];
+        })->values()) !!},
+
         addItem() {
             this.form.items.push({
                 product_id: '',
@@ -207,6 +207,16 @@ function purchaseForm() {
 
         removeItem(index) {
             this.form.items.splice(index, 1);
+        },
+
+        onProductSelect(index) {
+            const item = this.form.items[index];
+            const product = this.products.find(p => p.id == item.product_id);
+
+            if (product) {
+                item.unit_cost = parseFloat(product.cost_price);
+                this.calculateSubtotal(index);
+            }
         },
 
         calculateSubtotal(index) {
@@ -229,7 +239,6 @@ function purchaseForm() {
                 return;
             }
 
-            // Validar que todos los items tengan producto, cantidad y costo
             for (let i = 0; i < this.form.items.length; i++) {
                 const item = this.form.items[i];
                 if (!item.product_id) {
@@ -238,10 +247,6 @@ function purchaseForm() {
                 }
                 if (!item.quantity || item.quantity < 1) {
                     alert(`Debe ingresar una cantidad válida en la fila ${i + 1}`);
-                    return;
-                }
-                if (!item.unit_cost || item.unit_cost <= 0) {
-                    alert(`Debe ingresar un costo válido en la fila ${i + 1}`);
                     return;
                 }
             }
