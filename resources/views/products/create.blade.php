@@ -17,10 +17,10 @@
                     <label for="code" class="block text-sm font-medium text-gray-700 mb-2">
                         Código (opcional)
                     </label>
-                    <input 
-                        type="text" 
-                        id="code" 
-                        name="code" 
+                    <input
+                        type="text"
+                        id="code"
+                        name="code"
                         value="{{ old('code') }}"
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('code') border-red-500 @enderror"
                     >
@@ -34,10 +34,10 @@
                     <label for="name" class="block text-sm font-medium text-gray-700 mb-2">
                         Nombre <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        type="text" 
-                        id="name" 
-                        name="name" 
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
                         value="{{ old('name') }}"
                         required
                         class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('name') border-red-500 @enderror"
@@ -47,15 +47,111 @@
                     @enderror
                 </div>
             </div>
+            <!-- Rubro (Categoría) -->
+<div>
+    <label for="category_id" class="block text-sm font-medium text-gray-700 mb-2">
+        Rubro
+    </label>
+    <select
+        id="category_id"
+        name="category_id"
+        x-data="{ category: '{{ old('category_id') }}' }"
+        x-model="category"
+        @change="$dispatch('category-changed', category)"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('category_id') border-red-500 @enderror"
+    >
+        <option value="">Sin rubro</option>
+        @foreach(\App\Models\Category::active()->orderBy('name')->get() as $category)
+            <option value="{{ $category->id }}">{{ $category->name }}</option>
+        @endforeach
+    </select>
+    @error('category_id')
+        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
+</div>
+
+<!-- Línea -->
+<div x-data="lineSelector()">
+    <label for="line_id" class="block text-sm font-medium text-gray-700 mb-2">
+        Línea
+    </label>
+    <select
+        id="line_id"
+        name="line_id"
+        x-model="selectedLine"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('line_id') border-red-500 @enderror"
+    >
+        <option value="">Sin línea</option>
+        <template x-for="line in filteredLines" :key="line.id">
+            <option :value="line.id" x-text="line.name"></option>
+        </template>
+    </select>
+    @error('line_id')
+        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
+</div>
+
+<script>
+function lineSelector() {
+    return {
+        selectedLine: '{{ old('line_id') }}',
+        selectedCategory: '',
+        allLines: @json(\App\Models\Line::active()->with('category')->orderBy('name')->get()),
+
+        get filteredLines() {
+            if (!this.selectedCategory) {
+                return this.allLines;
+            }
+            return this.allLines.filter(line => line.category_id == this.selectedCategory);
+        },
+
+        init() {
+            this.$watch('selectedCategory', () => {
+                // Si la línea seleccionada no pertenece a la nueva categoría, resetear
+                const lineExists = this.filteredLines.find(line => line.id == this.selectedLine);
+                if (!lineExists) {
+                    this.selectedLine = '';
+                }
+            });
+
+            window.addEventListener('category-changed', (e) => {
+                this.selectedCategory = e.detail;
+            });
+        }
+    }
+}
+</script>
+
+<!-- Marca -->
+<div>
+    <label for="brand_id" class="block text-sm font-medium text-gray-700 mb-2">
+        Marca
+    </label>
+    <select
+        id="brand_id"
+        name="brand_id"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('brand_id') border-red-500 @enderror"
+    >
+        <option value="">Sin marca</option>
+        @foreach(\App\Models\Brand::active()->orderBy('name')->get() as $brand)
+            <option value="{{ $brand->id }}" {{ old('brand_id') == $brand->id ? 'selected' : '' }}>
+                {{ $brand->name }}
+            </option>
+        @endforeach
+    </select>
+    @error('brand_id')
+        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
+</div>
 
             <!-- Descripción -->
             <div>
                 <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
                     Descripción
                 </label>
-                <textarea 
-                    id="description" 
-                    name="description" 
+                <textarea
+                    id="description"
+                    name="description"
                     rows="3"
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('description') border-red-500 @enderror"
                 >{{ old('description') }}</textarea>
@@ -72,10 +168,10 @@
                     </label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-500">$</span>
-                        <input 
-                            type="number" 
-                            id="cost_price" 
-                            name="cost_price" 
+                        <input
+                            type="number"
+                            id="cost_price"
+                            name="cost_price"
                             value="{{ old('cost_price') }}"
                             step="0.01"
                             min="0"
@@ -95,10 +191,10 @@
                     </label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-500">$</span>
-                        <input 
-                            type="number" 
-                            id="sale_price" 
-                            name="sale_price" 
+                        <input
+                            type="number"
+                            id="sale_price"
+                            name="sale_price"
                             value="{{ old('sale_price') }}"
                             step="0.01"
                             min="0"
@@ -118,10 +214,10 @@
                     <label for="stock" class="block text-sm font-medium text-gray-700 mb-2">
                         Stock Inicial <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        type="number" 
-                        id="stock" 
-                        name="stock" 
+                    <input
+                        type="number"
+                        id="stock"
+                        name="stock"
                         value="{{ old('stock', 0) }}"
                         min="0"
                         required
@@ -137,10 +233,10 @@
                     <label for="min_stock" class="block text-sm font-medium text-gray-700 mb-2">
                         Stock Mínimo <span class="text-red-500">*</span>
                     </label>
-                    <input 
-                        type="number" 
-                        id="min_stock" 
-                        name="min_stock" 
+                    <input
+                        type="number"
+                        id="min_stock"
+                        name="min_stock"
                         value="{{ old('min_stock', 5) }}"
                         min="0"
                         required
@@ -157,10 +253,10 @@
                 <label for="expires_at" class="block text-sm font-medium text-gray-700 mb-2">
                     Fecha de Vencimiento (opcional)
                 </label>
-                <input 
-                    type="date" 
-                    id="expires_at" 
-                    name="expires_at" 
+                <input
+                    type="date"
+                    id="expires_at"
+                    name="expires_at"
                     value="{{ old('expires_at') }}"
                     min="{{ date('Y-m-d') }}"
                     class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('expires_at') border-red-500 @enderror"

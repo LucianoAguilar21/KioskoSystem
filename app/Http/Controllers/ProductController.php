@@ -14,25 +14,37 @@ class ProductController extends Controller
 {
     use AuthorizesRequests;
     public function index(Request $request)
-    {
-        $query = Product::query();
+{
+    $query = Product::with(['category', 'line', 'brand']);
 
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->input('low_stock')) {
-            $query->lowStock();
-        }
-
-        $products = $query->orderBy('name')->paginate(50);
-        $filters = $request->only(['search', 'low_stock']);
-
-        return view('products.index', compact('products', 'filters'));
+    if ($search = $request->input('search')) {
+        $query->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('code', 'like', "%{$search}%");
+        });
     }
+
+    if ($categoryId = $request->input('category_id')) {
+        $query->where('category_id', $categoryId);
+    }
+
+    if ($lineId = $request->input('line_id')) {
+        $query->where('line_id', $lineId);
+    }
+
+    if ($brandId = $request->input('brand_id')) {
+        $query->where('brand_id', $brandId);
+    }
+
+    if ($request->input('low_stock')) {
+        $query->lowStock();
+    }
+
+    $products = $query->orderBy('name')->paginate(50);
+    $filters = $request->only(['search', 'category_id', 'line_id', 'brand_id', 'low_stock']);
+
+    return view('products.index', compact('products', 'filters'));
+}
 
     public function create()
     {
@@ -53,7 +65,7 @@ class ProductController extends Controller
     {
         $this->authorize('update', $product);
         $product->load('priceHistories.user');
-        
+
         return view('products.edit', compact('product'));
     }
 

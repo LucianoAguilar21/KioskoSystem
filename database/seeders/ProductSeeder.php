@@ -4,380 +4,215 @@
 namespace Database\Seeders;
 
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\Brand;
+use App\Models\Line;
 use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
 {
     public function run(): void
     {
+        // =========================
+        // Categorías
+        // =========================
+        $bebidas     = Category::where('name', 'Bebidas')->first();
+        $snacks      = Category::where('name', 'Snacks')->first();
+        $almacen     = Category::where('name', 'Almacén')->first();
+        $limpieza    = Category::where('name', 'Limpieza')->first();
+        $higiene     = Category::where('name', 'Higiene Personal')->first();
+        $cigarrillos = Category::where('name', 'Cigarrillos')->first();
+
+        // =========================
+        // Líneas
+        // =========================
+        $gaseosas   = Line::where('name', 'Gaseosas')->first();
+        $aguas      = Line::where('name', 'Aguas')->first();
+        $jugos      = Line::where('name', 'Jugos')->first();
+        $cervezas   = Line::where('name', 'Cervezas')->first();
+
+        $papas      = Line::where('name', 'Papas Fritas')->first();
+        $galletitas = Line::where('name', 'Galletitas')->first();
+        $alfajores  = Line::where('name', 'Alfajores')->first();
+        $chocolates = Line::where('name', 'Chocolates')->first();
+        $caramelos  = Line::where('name', 'Caramelos')->first();
+
+        $pastas     = Line::where('name', 'Pastas')->first();
+        $lacteos    = Line::where('name', 'Lácteos')->first();
+        $aceites    = Line::where('name', 'Aceites')->first();
+
+        // =========================
+        // Marcas
+        // =========================
+        $cocaCola   = Brand::where('name', 'Coca Cola')->first();
+        $sprite     = Brand::where('name', 'Sprite')->first();
+        $fanta      = Brand::where('name', 'Fanta')->first();
+        $baggio     = Brand::where('name', 'Baggio')->first();
+        $quilmes    = Brand::where('name', 'Quilmes')->first();
+
+        $lays       = Brand::where('name', 'Lays')->first();
+        $doritos    = Brand::where('name', 'Doritos')->first();
+        $oreo       = Brand::where('name', 'Oreo')->first();
+        $jorgito    = Brand::where('name', 'Jorgito')->first();
+        $milka      = Brand::where('name', 'Milka')->first();
+        $sugus      = Brand::where('name', 'Sugus')->first();
+        $beldent    = Brand::where('name', 'Beldent')->first();
+
+        $marlboro   = Brand::where('name', 'Marlboro')->first();
+        $philip     = Brand::where('name', 'Philip Morris')->first();
+        $camel      = Brand::where('name', 'Camel')->first();
+
+        $bimbo      = Brand::where('name', 'Bimbo')->first();
+        $serenisima = Brand::where('name', 'La Serenísima')->first();
+        $hellmanns  = Brand::where('name', 'Hellmanns')->first();
+
+        $magistral  = Brand::where('name', 'Magistral')->first();
+        $higienol   = Brand::where('name', 'Higienol')->first();
+        $dove       = Brand::where('name', 'Dove')->first();
+        $sedal      = Brand::where('name', 'Sedal')->first();
+
+        // =========================
+        // Productos
+        // =========================
         $products = [
-            // Bebidas
+
+            // ===== BEBIDAS =====
             [
                 'code' => 'BEB001',
                 'name' => 'Coca Cola 500ml',
                 'description' => 'Gaseosa Coca Cola botella 500ml',
-                'cost_price' => 120.00,
-                'sale_price' => 180.00,
+                'category_id' => $bebidas->id,
+                'line_id' => $gaseosas->id,
+                'brand_id' => $cocaCola->id,
+                'cost_price' => 120,
+                'sale_price' => 180,
                 'stock' => 50,
                 'min_stock' => 10,
                 'is_active' => true,
             ],
             [
                 'code' => 'BEB002',
-                'name' => 'Coca Cola 2.25L',
-                'description' => 'Gaseosa Coca Cola botella 2.25 litros',
-                'cost_price' => 280.00,
-                'sale_price' => 420.00,
-                'stock' => 30,
-                'min_stock' => 8,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'BEB003',
                 'name' => 'Sprite 500ml',
                 'description' => 'Gaseosa Sprite botella 500ml',
-                'cost_price' => 115.00,
-                'sale_price' => 175.00,
+                'category_id' => $bebidas->id,
+                'line_id' => $gaseosas->id,
+                'brand_id' => $sprite->id,
+                'cost_price' => 115,
+                'sale_price' => 175,
                 'stock' => 45,
                 'min_stock' => 10,
                 'is_active' => true,
             ],
             [
-                'code' => 'BEB004',
-                'name' => 'Fanta 500ml',
-                'description' => 'Gaseosa Fanta naranja botella 500ml',
-                'cost_price' => 115.00,
-                'sale_price' => 175.00,
-                'stock' => 40,
-                'min_stock' => 10,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'BEB005',
-                'name' => 'Agua Mineral 500ml',
-                'description' => 'Agua mineral sin gas',
-                'cost_price' => 80.00,
-                'sale_price' => 130.00,
-                'stock' => 100,
-                'min_stock' => 20,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'BEB006',
-                'name' => 'Cerveza Quilmes 1L',
-                'description' => 'Cerveza Quilmes litro',
-                'cost_price' => 350.00,
-                'sale_price' => 550.00,
-                'stock' => 60,
-                'min_stock' => 15,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'BEB007',
-                'name' => 'Vino Tinto 750ml',
-                'description' => 'Vino tinto común',
-                'cost_price' => 450.00,
-                'sale_price' => 700.00,
-                'stock' => 25,
-                'min_stock' => 5,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'BEB008',
+                'code' => 'BEB003',
                 'name' => 'Jugo Baggio 1L',
-                'description' => 'Jugo Baggio multifruta 1 litro',
-                'cost_price' => 180.00,
-                'sale_price' => 280.00,
+                'description' => 'Jugo Baggio multifruta',
+                'category_id' => $bebidas->id,
+                'line_id' => $jugos->id,
+                'brand_id' => $baggio->id,
+                'cost_price' => 180,
+                'sale_price' => 280,
                 'stock' => 35,
                 'min_stock' => 8,
                 'is_active' => true,
             ],
+            [
+                'code' => 'BEB004',
+                'name' => 'Cerveza Quilmes 1L',
+                'description' => 'Cerveza Quilmes litro',
+                'category_id' => $bebidas->id,
+                'line_id' => $cervezas->id,
+                'brand_id' => $quilmes->id,
+                'cost_price' => 350,
+                'sale_price' => 550,
+                'stock' => 60,
+                'min_stock' => 15,
+                'is_active' => true,
+            ],
 
-            // Snacks y Golosinas
+            // ===== SNACKS =====
             [
                 'code' => 'SNK001',
                 'name' => 'Lays Clásicas 150g',
                 'description' => 'Papas fritas Lays clásicas',
-                'cost_price' => 220.00,
-                'sale_price' => 350.00,
+                'category_id' => $snacks->id,
+                'line_id' => $papas->id,
+                'brand_id' => $lays->id,
+                'cost_price' => 220,
+                'sale_price' => 350,
                 'stock' => 40,
                 'min_stock' => 10,
                 'is_active' => true,
             ],
             [
                 'code' => 'SNK002',
-                'name' => 'Doritos 150g',
-                'description' => 'Doritos nachos queso',
-                'cost_price' => 230.00,
-                'sale_price' => 360.00,
-                'stock' => 35,
-                'min_stock' => 10,
+                'name' => 'Oreo 118g',
+                'description' => 'Galletitas Oreo clásicas',
+                'category_id' => $snacks->id,
+                'line_id' => $galletitas->id,
+                'brand_id' => $oreo->id,
+                'cost_price' => 180,
+                'sale_price' => 280,
+                'stock' => 50,
+                'min_stock' => 12,
                 'is_active' => true,
             ],
             [
                 'code' => 'SNK003',
-                'name' => 'Pepitos 55g',
-                'description' => 'Galletitas Pepitos con chips de chocolate',
-                'cost_price' => 140.00,
-                'sale_price' => 220.00,
-                'stock' => 60,
-                'min_stock' => 15,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'SNK004',
-                'name' => 'Oreo 118g',
-                'description' => 'Galletitas Oreo clásicas',
-                'cost_price' => 180.00,
-                'sale_price' => 280.00,
-                'stock' => 50,
-                'min_stock' => 12,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'SNK005',
-                'name' => 'Alfajor Jorgito',
-                'description' => 'Alfajor Jorgito simple',
-                'cost_price' => 90.00,
-                'sale_price' => 150.00,
-                'stock' => 80,
-                'min_stock' => 20,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'SNK006',
                 'name' => 'Alfajor Milka',
                 'description' => 'Alfajor Milka triple',
-                'cost_price' => 180.00,
-                'sale_price' => 280.00,
+                'category_id' => $snacks->id,
+                'line_id' => $alfajores->id,
+                'brand_id' => $milka->id,
+                'cost_price' => 180,
+                'sale_price' => 280,
                 'stock' => 45,
                 'min_stock' => 12,
                 'is_active' => true,
             ],
-            [
-                'code' => 'SNK007',
-                'name' => 'Chocolate Milka 100g',
-                'description' => 'Tableta Milka leche 100g',
-                'cost_price' => 320.00,
-                'sale_price' => 480.00,
-                'stock' => 30,
-                'min_stock' => 8,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'SNK008',
-                'name' => 'Caramelos Sugus',
-                'description' => 'Caramelos Sugus surtidos x50',
-                'cost_price' => 250.00,
-                'sale_price' => 380.00,
-                'stock' => 25,
-                'min_stock' => 5,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'SNK009',
-                'name' => 'Chicles Beldent',
-                'description' => 'Chicles Beldent menta x10',
-                'cost_price' => 120.00,
-                'sale_price' => 190.00,
-                'stock' => 70,
-                'min_stock' => 15,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'SNK010',
-                'name' => 'Maní Salado 100g',
-                'description' => 'Maní con sal',
-                'cost_price' => 150.00,
-                'sale_price' => 240.00,
-                'stock' => 40,
-                'min_stock' => 10,
-                'is_active' => true,
-            ],
 
-            // Cigarrillos
+            // ===== CIGARRILLOS =====
             [
                 'code' => 'CIG001',
                 'name' => 'Marlboro Box',
                 'description' => 'Cigarrillos Marlboro caja x20',
-                'cost_price' => 850.00,
-                'sale_price' => 1200.00,
+                'category_id' => $cigarrillos->id,
+                'line_id' => null,
+                'brand_id' => $marlboro->id,
+                'cost_price' => 850,
+                'sale_price' => 1200,
                 'stock' => 100,
                 'min_stock' => 20,
                 'is_active' => true,
             ],
-            [
-                'code' => 'CIG002',
-                'name' => 'Philips Morris Box',
-                'description' => 'Cigarrillos PM caja x20',
-                'cost_price' => 800.00,
-                'sale_price' => 1150.00,
-                'stock' => 90,
-                'min_stock' => 20,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'CIG003',
-                'name' => 'Camel Box',
-                'description' => 'Cigarrillos Camel caja x20',
-                'cost_price' => 780.00,
-                'sale_price' => 1100.00,
-                'stock' => 85,
-                'min_stock' => 18,
-                'is_active' => true,
-            ],
 
-            // Productos de almacén
+            // ===== ALMACÉN =====
             [
                 'code' => 'ALM001',
                 'name' => 'Pan Lactal',
                 'description' => 'Pan lactal Bimbo grande',
-                'cost_price' => 280.00,
-                'sale_price' => 420.00,
+                'category_id' => $almacen->id,
+                'line_id' => $pastas->id,
+                'brand_id' => $bimbo->id,
+                'cost_price' => 280,
+                'sale_price' => 420,
                 'stock' => 20,
                 'min_stock' => 5,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'ALM002',
-                'name' => 'Leche Larga Vida 1L',
-                'description' => 'Leche La Serenísima entera',
-                'cost_price' => 320.00,
-                'sale_price' => 480.00,
-                'stock' => 40,
-                'min_stock' => 10,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'ALM003',
-                'name' => 'Huevos x12',
-                'description' => 'Maple de huevos blancos x12',
-                'cost_price' => 450.00,
-                'sale_price' => 650.00,
-                'stock' => 25,
-                'min_stock' => 5,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'ALM004',
-                'name' => 'Aceite Girasol 900ml',
-                'description' => 'Aceite de girasol común',
-                'cost_price' => 380.00,
-                'sale_price' => 550.00,
-                'stock' => 30,
-                'min_stock' => 8,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'ALM005',
-                'name' => 'Azúcar 1kg',
-                'description' => 'Azúcar común 1kg',
-                'cost_price' => 280.00,
-                'sale_price' => 420.00,
-                'stock' => 35,
-                'min_stock' => 8,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'ALM006',
-                'name' => 'Sal Fina 500g',
-                'description' => 'Sal fina de mesa',
-                'cost_price' => 120.00,
-                'sale_price' => 190.00,
-                'stock' => 40,
-                'min_stock' => 10,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'ALM007',
-                'name' => 'Arroz 1kg',
-                'description' => 'Arroz blanco largo fino',
-                'cost_price' => 350.00,
-                'sale_price' => 520.00,
-                'stock' => 28,
-                'min_stock' => 6,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'ALM008',
-                'name' => 'Fideos Secos 500g',
-                'description' => 'Fideos secos tirabuzón',
-                'cost_price' => 220.00,
-                'sale_price' => 330.00,
-                'stock' => 45,
-                'min_stock' => 10,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'ALM009',
-                'name' => 'Mayonesa 500g',
-                'description' => 'Mayonesa Hellmanns',
-                'cost_price' => 420.00,
-                'sale_price' => 620.00,
-                'stock' => 22,
-                'min_stock' => 5,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'ALM010',
-                'name' => 'Tomate Triturado 520g',
-                'description' => 'Tomate triturado lata',
-                'cost_price' => 180.00,
-                'sale_price' => 280.00,
-                'stock' => 50,
-                'min_stock' => 12,
                 'is_active' => true,
             ],
 
-            // Higiene y limpieza
+            // ===== LIMPIEZA / HIGIENE =====
             [
                 'code' => 'HIG001',
-                'name' => 'Papel Higiénico x4',
-                'description' => 'Papel higiénico Higienol x4',
-                'cost_price' => 380.00,
-                'sale_price' => 560.00,
-                'stock' => 35,
-                'min_stock' => 8,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'HIG002',
-                'name' => 'Jabón Tocador x3',
-                'description' => 'Jabón de tocador Dove x3',
-                'cost_price' => 420.00,
-                'sale_price' => 620.00,
-                'stock' => 28,
-                'min_stock' => 6,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'HIG003',
-                'name' => 'Shampoo 400ml',
-                'description' => 'Shampoo Sedal 400ml',
-                'cost_price' => 550.00,
-                'sale_price' => 800.00,
-                'stock' => 20,
-                'min_stock' => 5,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'HIG004',
-                'name' => 'Detergente 500ml',
+                'name' => 'Detergente Magistral 500ml',
                 'description' => 'Detergente líquido Magistral',
-                'cost_price' => 320.00,
-                'sale_price' => 480.00,
+                'category_id' => $limpieza->id,
+                'line_id' => null,
+                'brand_id' => $magistral->id,
+                'cost_price' => 320,
+                'sale_price' => 480,
                 'stock' => 25,
                 'min_stock' => 6,
-                'is_active' => true,
-            ],
-            [
-                'code' => 'HIG005',
-                'name' => 'Lavandina 1L',
-                'description' => 'Lavandina común 1 litro',
-                'cost_price' => 180.00,
-                'sale_price' => 280.00,
-                'stock' => 30,
-                'min_stock' => 8,
                 'is_active' => true,
             ],
         ];

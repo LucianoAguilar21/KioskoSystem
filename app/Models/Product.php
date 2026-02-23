@@ -12,6 +12,9 @@ class Product extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'category_id',
+        'line_id',
+        'brand_id',
         'code',
         'name',
         'description',
@@ -51,6 +54,21 @@ class Product extends Model
         return $this->hasMany(PriceHistory::class);
     }
 
+        public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function line()
+    {
+        return $this->belongsTo(Line::class);
+    }
+
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
     // Scopes
     public function scopeActive($query)
     {
@@ -66,6 +84,22 @@ class Product extends Model
     {
         return $query->whereNotNull('expires_at')
             ->whereBetween('expires_at', [now(), now()->addDays($days)]);
+    }
+
+    // scope para filtrar por categoría
+    public function scopeByCategory($query, $categoryId)
+    {
+        return $query->where('category_id', $categoryId);
+    }
+
+    public function scopeByLine($query, $lineId)
+    {
+        return $query->where('line_id', $lineId);
+    }
+
+    public function scopeByBrand($query, $brandId)
+    {
+        return $query->where('brand_id', $brandId);
     }
 
     // Helpers
@@ -84,4 +118,6 @@ class Product extends Model
     {
         return $this->sale_price - $this->cost_price;
     }
+
+
 }

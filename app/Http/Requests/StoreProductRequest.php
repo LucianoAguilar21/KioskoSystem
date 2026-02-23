@@ -23,6 +23,9 @@ class StoreProductRequest extends FormRequest
             'stock' => ['required', 'integer', 'min:0'],
             'min_stock' => ['required', 'integer', 'min:0'],
             'expires_at' => ['nullable', 'date', 'after:today'],
+            'category_id' => ['nullable', 'exists:categories,id'],
+            'line_id' => ['nullable', 'exists:lines,id'],
+            'brand_id' => ['nullable', 'exists:brands,id'],
         ];
     }
 }

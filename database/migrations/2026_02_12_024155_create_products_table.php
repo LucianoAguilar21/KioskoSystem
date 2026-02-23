@@ -24,7 +24,13 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
+            $table->foreignId('category_id')->nullable()->after('id')->constrained()->onDelete('set null');
+            $table->foreignId('line_id')->nullable()->after('category_id')->constrained()->onDelete('set null');
+            $table->foreignId('brand_id')->nullable()->after('line_id')->constrained()->onDelete('set null');
 
+            $table->index(['category_id', 'is_active']);
+            $table->index('line_id');
+            $table->index('brand_id');
             $table->index(['is_active', 'stock']);
             $table->index('expires_at');
         });
